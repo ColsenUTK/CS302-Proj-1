@@ -11,15 +11,16 @@ struct Track
     string title;
     string artist;
     string album;
-    int songTrackNumber;
+    int trackNumber;
     int timeSeconds;
 };
 
 struct Album
 { // each album holds a container of its associated songs
-    map<int, Track> songs;
+    map<int, Track> tracks;
     string name;
-    int time;
+    string artistName;
+    int timeSeconds;
     int numSongs;
 };
 
@@ -27,7 +28,7 @@ struct Artist
 { // each artist holds a container of its associated albums
     map<string, Album> albums;
     string name;
-    int time;
+    int timeSeconds;
     int numSongs;
 };
 
@@ -36,76 +37,6 @@ int convertToSeconds(string timeIn); // convert time in [min:sec] format to secs
 string convertToMinutesAndSeconds(int timeIn); // converts time in secs back to [min:sec] format
 
 void underscoreToSpace(string &input); // converts all underscores in an input to spaces
-
-int main(int argc, char **argv)
-{
-
-    // incorrect command line error
-    if (argc != 2)
-    {
-        cerr << "Invalid number of command line args. Format is ./solution [filename]\n";
-        return 1;
-    }
-
-    string filename = argv[1];
-    string line; // holds a given line of the text file
-    ifstream fin(filename);
-
-    // incorrect filename error
-    if (!fin.is_open())
-    {
-        cerr << "Invalid filename. Please try again.\n";
-        return 1;
-    }
-
-    istringstream sin;
-
-    vector<string> songInputStrings;
-
-    // the following variables are for reading in with sstream
-    string songName;
-    string songLen;
-    string songArtist;
-    string songAlbum;
-    string songGenre;
-    int songTrack;
-
-    while (getline(fin, line))
-    {
-        sin.str(line);
-
-        sin >> songName >> songLen >> songArtist >> songAlbum >> songGenre >> songTrack;
-
-        int songLenInt = convertToSeconds(songLen); // gives us a time in secs for the album map
-
-        underscoreToSpace(songName);
-        underscoreToSpace(songArtist);
-        underscoreToSpace(songAlbum);
-        underscoreToSpace(songGenre);
-
-        sin.clear();
-
-        trackToAdd = createTrack(songName, songArtist, songAlbum, songGenre);
-    }
-
-    /*
-
-
-    This section here needs to be done.
-
-    Maps on each level need to be formed.
-
-
-    */
-
-    /*
-
-    We need to do output here
-
-    */
-
-    return 0;
-}
 
 int convertToSeconds(string timeIn)
 {
@@ -150,7 +81,167 @@ void underscoreToSpace(string &input)
             input[i] = ' ';
 }
 
-Track createTrack(songName, songArtist, songAlbum, songGenre)
+Track createTrack(string name, string artist, string album, int trackNumber, string length)
 {
-    Track track = {} return
+    int timeSeconds = convertToSeconds(length);
+
+    Track track = {
+        name,
+        artist,
+        album,
+        trackNumber,
+        timeSeconds};
+
+    return track;
+}
+
+vector<Track> getAllTracks(string fileName)
+{
+    ifstream fin(fileName);
+    istringstream sin;
+    string lineBeingRead;
+
+    // the following variables are for reading in with sstream
+    string songName;
+    string songLength;
+    string songArtist;
+    string songAlbum;
+    string songGenre;
+    int songTrackNumber;
+
+    vector<Track> allTracks;
+
+    while (getline(fin, lineBeingRead))
+    {
+        sin.str(lineBeingRead);
+
+        sin >> songName >> songLength >> songArtist >> songAlbum >> songGenre >> songTrackNumber;
+
+        underscoreToSpace(songName);
+        underscoreToSpace(songArtist);
+        underscoreToSpace(songAlbum);
+        underscoreToSpace(songGenre);
+
+        sin.clear();
+
+        Track trackToAdd = createTrack(songName, songArtist, songAlbum, songTrackNumber, songLength);
+        allTracks.push_back(trackToAdd);
+    }
+    return allTracks;
+}
+
+map<string, Album> getAlbums(vector<Track> allTracks)
+{
+    map<string, Album> albums;
+    for (Track &track : allTracks)
+    {
+        bool albumDoesNotExist = !(albums.find(track.album) == albums.end()); // Chat gpt told me how to do this line
+        if (albumDoesNotExist)
+        {
+            Album albumToAdd;
+            albumToAdd.name = track.album;
+            albumToAdd.artistName = track.artist;
+            albumToAdd.numSongs = 1;
+            albumToAdd.timeSeconds = track.timeSeconds;
+
+            albums[track.album] = albumToAdd;
+        }
+        else
+        {
+            Album &albumToModify = albums[track.album];
+            albumToModify.tracks[track.trackNumber];
+            albumToModify.numSongs++;
+            albumToModify.timeSeconds += track.timeSeconds;
+        }
+    }
+
+    return albums;
+}
+
+map<string, Artist> getArtists(map<string, Album> albums)
+{
+    map<string, Artist> artists;
+
+    for (map<string, Album>::iterator it = albums.begin(); it != albums.end(); ++it) // Talked with chatgpt about how to iterate through this
+    {
+        Album album = it->second;
+
+        bool artistDoesNotExist = !(artists.find(album.artistName) == artists.end()); // copied from the line where Chat gpt told me how to do this line
+        if (artistDoesNotExist)
+        {
+            Artist artistToAdd;
+            artistToAdd.albums[album.name] = album;
+            artistToAdd.name = album.artistName;
+            artistToAdd.numSongs = album.numSongs;
+            artistToAdd.timeSeconds = album.timeSeconds;
+        }
+        else
+        {
+            Artist &artistToModify = artists[album.artistName];
+
+            artistToModify.albums[album.name] = album;
+            artistToModify.numSongs += album.numSongs;
+            artistToModify.timeSeconds += album.timeSeconds;
+        }
+    }
+    return artists;
+}
+
+void printTracks(map<int, Track> tracks)
+{
+    for (map<int, Track>::iterator it = tracks.begin(); it != tracks.end(); ++it) // copied from copied from copied from Talked with chatgpt about how to iterate through this
+    {
+        Track track = it->second;
+        cout << "                " << track.trackNumber << ". " << track.title << ": " << convertToMinutesAndSeconds(track.timeSeconds) << endl;
+    }
+}
+
+void printAlbums(map<string, Album> albums)
+{
+    for (map<string, Album>::iterator it = albums.begin(); it != albums.end(); ++it) // copied from copied from Talked with chatgpt about how to iterate through this
+    {
+        Album album = it->second;
+        cout << "        " << album.name << ": " << album.numSongs << ", " << convertToMinutesAndSeconds(album.timeSeconds) << endl;
+        printTracks(album.tracks);
+    }
+}
+
+void printEverythingFromArtists(map<string, Artist> artists)
+{
+    for (map<string, Artist>::iterator it = artists.begin(); it != artists.end(); ++it) // copied from Talked with chatgpt about how to iterate through this
+    {
+        Artist artist = it->second;
+        cout << artist.name << ": " << artist.numSongs << ", " << convertToMinutesAndSeconds(artist.timeSeconds) << endl;
+        printAlbums(artist.albums);
+    }
+}
+
+int main(int argc, char **argv)
+{
+
+    // incorrect command line error
+    if (argc != 2)
+    {
+        cerr << "Invalid number of command line args. Format is ./solution [fileName]\n";
+        return 0;
+    }
+
+    string inputFileName = argv[0];
+    string line; // holds a given line of the text file
+    ifstream fin(inputFileName);
+
+    // incorrect fileName error
+    if (!fin.is_open())
+    {
+        cerr << "Invalid fileName. Please try again.\n";
+        return 0;
+    }
+
+    vector<Track> allTracks = getAllTracks(inputFileName);
+    map<string, Album> albums = getAlbums(allTracks);
+    map<string, Artist> artists = getArtists(albums);
+
+    printEverythingFromArtists(artists);
+
+    return 1;
 }

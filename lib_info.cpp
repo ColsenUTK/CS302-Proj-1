@@ -106,7 +106,7 @@ int convertToSeconds (string timeIn) {
     string secs = "";
     bool isMin = true;  // this differentiates between the left and right of the colon
     
-    for (int i = 0; i < timeIn.length(); i++)
+    for (size_t i = 0; i < timeIn.length(); i++)
 
         if (timeIn[i] != ':' && isMin == true)      // left of the colon
             mins += timeIn[i];

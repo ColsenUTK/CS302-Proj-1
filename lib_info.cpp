@@ -6,6 +6,9 @@
 #include <sstream>
 using namespace std;
 
+
+// structs are from lab document (Dr. Emrich)
+
 struct Track
 { // holds an individual song
     string title;
@@ -40,6 +43,8 @@ void underscoreToSpace(string &input); // converts all underscores in an input t
 
 int convertToSeconds(string timeIn)
 {
+    // cout << "This is the time in c2s func:  " << timeIn << endl;
+
     int outputTime;
     string mins = "";
     string secs = "";
@@ -81,54 +86,43 @@ void underscoreToSpace(string &input)
             input[i] = ' ';
 }
 
-Track createTrack(string name, string artist, string album, int trackNumber, string length)
-{
-    int timeSeconds = convertToSeconds(length);
+// vector<Track> getAllTracks(string fileName)
+// {
+//     ifstream fin(fileName);
+//     istringstream sin;
+//     string lineBeingRead;
 
-    Track track = {
-        name,
-        artist,
-        album,
-        trackNumber,
-        timeSeconds};
+//     // the following variables are for reading in with sstream
+//     string songName;
+//     string songLength;
+//     string songArtist;
+//     string songAlbum;
+//     string songGenre;
+//     int songTrackNumber;
 
-    return track;
-}
+//     vector<Track> allTracks;
 
-vector<Track> getAllTracks(string fileName)
-{
-    ifstream fin(fileName);
-    istringstream sin;
-    string lineBeingRead;
+//     while (getline(fin, lineBeingRead))
+//     {
+//         sin.str(lineBeingRead);
 
-    // the following variables are for reading in with sstream
-    string songName;
-    string songLength;
-    string songArtist;
-    string songAlbum;
-    string songGenre;
-    int songTrackNumber;
+//         sin >> songName >> songLength >> songArtist >> songAlbum >> songGenre >> songTrackNumber;
 
-    vector<Track> allTracks;
+//         cout << lineBeingRead << endl;
+//         cout << songName << '-' << songLength << '-' << songArtist << '-' << songAlbum << '-' << songGenre << '-' << songTrackNumber << '-' << endl;
 
-    while (getline(fin, lineBeingRead))
-    {
-        sin.str(lineBeingRead);
+//         underscoreToSpace(songName);
+//         underscoreToSpace(songArtist);
+//         underscoreToSpace(songAlbum);
+//         underscoreToSpace(songGenre);
 
-        sin >> songName >> songLength >> songArtist >> songAlbum >> songGenre >> songTrackNumber;
+//         sin.clear();
 
-        underscoreToSpace(songName);
-        underscoreToSpace(songArtist);
-        underscoreToSpace(songAlbum);
-        underscoreToSpace(songGenre);
-
-        sin.clear();
-
-        Track trackToAdd = createTrack(songName, songArtist, songAlbum, songTrackNumber, songLength);
-        allTracks.push_back(trackToAdd);
-    }
-    return allTracks;
-}
+//         Track trackToAdd = createTrack(songName, songArtist, songAlbum, songTrackNumber, songLength);
+//         allTracks.push_back(trackToAdd);
+//     }
+//     return allTracks;
+// }
 
 map<string, Album> getAlbums(vector<Track> allTracks)
 {
@@ -226,7 +220,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    string inputFileName = argv[0];
+    string inputFileName = argv[1];
     string line; // holds a given line of the text file
     ifstream fin(inputFileName);
 
@@ -237,11 +231,49 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    vector<Track> allTracks = getAllTracks(inputFileName);
+    istringstream sin;
+
+    // the following variables are for reading in with sstream
+    string songName;
+    string songLength;
+    string songArtist;
+    string songAlbum;
+    string songGenre;
+    int songTrackNumber;
+
+    vector<Track> allTracks;
+
+    while (getline(fin, line))
+    {
+        sin.str(line);
+
+        sin >> songName >> songLength >> songArtist >> songAlbum >> songGenre >> songTrackNumber;
+        
+        // cout << songName << '-' << songLength << '-' << songArtist << '-' << songAlbum << '-' << songGenre << '-' << songTrackNumber << '-' << endl;         // error checking inputs
+
+        underscoreToSpace(songName);
+        underscoreToSpace(songArtist);
+        underscoreToSpace(songAlbum);
+        underscoreToSpace(songGenre);
+
+        sin.clear();
+
+        int timeSeconds = convertToSeconds(songLength);
+
+        Track trackToAdd = {
+        songName,
+        songArtist,
+        songAlbum,
+        songTrackNumber,
+        timeSeconds};
+
+        allTracks.push_back(trackToAdd);
+    }
+
     map<string, Album> albums = getAlbums(allTracks);
     map<string, Artist> artists = getArtists(albums);
 
     printEverythingFromArtists(artists);
 
-    return 1;
+    return 0;
 }

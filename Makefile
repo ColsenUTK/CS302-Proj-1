@@ -16,4 +16,4 @@ test:	bin/solution
 
 short:  bin/solution
 	@echo Testing output...
-	./bin/solution Short.txt
+	./bin/solution Small.txt

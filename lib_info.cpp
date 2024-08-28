@@ -92,103 +92,6 @@ void underscoreToSpace(string &input)
             input[i] = ' ';
 }
 
-// vector<Track> getAllTracks(string fileName)
-// {
-//     ifstream fin(fileName);
-//     istringstream sin;
-//     string lineBeingRead;
-
-//     // the following variables are for reading in with sstream
-//     string songName;
-//     string songLength;
-//     string songArtist;
-//     string songAlbum;
-//     string songGenre;
-//     int songTrackNumber;
-
-//     vector<Track> allTracks;
-
-//     while (getline(fin, lineBeingRead))
-//     {
-//         sin.str(lineBeingRead);
-
-//         sin >> songName >> songLength >> songArtist >> songAlbum >> songGenre >> songTrackNumber;
-
-//         cout << lineBeingRead << endl;
-//         cout << songName << '-' << songLength << '-' << songArtist << '-' << songAlbum << '-' << songGenre << '-' << songTrackNumber << '-' << endl;
-
-//         underscoreToSpace(songName);
-//         underscoreToSpace(songArtist);
-//         underscoreToSpace(songAlbum);
-//         underscoreToSpace(songGenre);
-
-//         sin.clear();
-
-//         Track trackToAdd = createTrack(songName, songArtist, songAlbum, songTrackNumber, songLength);
-//         allTracks.push_back(trackToAdd);
-//     }
-//     return allTracks;
-// }
-
-map<string, Album> getAlbums(vector<Track> allTracks)
-{
-    map<string, Album> albums;
-    for (Track &track : allTracks)
-    {
-        bool albumDoesNotExist = (albums.find(track.album) == albums.end()); // Chat gpt told me how to do this line
-        if (albumDoesNotExist)
-        {
-            Album albumToAdd;
-            albumToAdd.tracks[track.trackNumber] = track;
-            albumToAdd.name = track.album;
-            albumToAdd.artistName = track.artist;
-            albumToAdd.numSongs = 1;
-            albumToAdd.timeSeconds = track.timeSeconds;
-
-            albums[track.album] = albumToAdd;
-        }
-        else
-        {
-            Album &albumToModify = albums[track.album];
-            albumToModify.tracks[track.trackNumber] = track;
-            albumToModify.numSongs++;
-            albumToModify.timeSeconds += track.timeSeconds;
-        }
-    }
-
-    return albums;
-}
-
-map<string, Artist> getArtists(map<string, Album> albums)
-{
-    map<string, Artist> artists;
-
-    for (map<string, Album>::iterator it = albums.begin(); it != albums.end(); ++it) // Talked with chatgpt about how to iterate through this
-    {
-        Album album = it->second;
-
-        bool artistDoesNotExist = (artists.find(album.artistName) == artists.end()); // copied from the line where Chat gpt told me how to do this line
-        if (artistDoesNotExist)
-        {
-            Artist artistToAdd;
-            artistToAdd.albums[album.name] = album;
-            artistToAdd.name = album.artistName;
-            artistToAdd.numSongs = album.numSongs;
-            artistToAdd.timeSeconds = album.timeSeconds;
-            artists[artistToAdd.name] = artistToAdd;
-        }
-        else
-        {
-            Artist &artistToModify = artists[album.artistName];
-
-            artistToModify.albums[album.name] = album;
-            artistToModify.numSongs += album.numSongs;
-            artistToModify.timeSeconds += album.timeSeconds;
-        }
-    }
-    return artists;
-}
-
 void printTracks(map<int, Track> tracks)
 {
     // cout << "PRINT TRACKS RAN" << endl;
@@ -200,7 +103,7 @@ void printTracks(map<int, Track> tracks)
     }
 }
 
-void printAlbumsAndTracks(map<string, Album> albums)
+void printAlbums(map<string, Album> albums)
 {
     // cout << "PRINT ALBUMS AND TRACKS RAN" << endl;
     for (map<string, Album>::iterator it = albums.begin(); it != albums.end(); ++it) // copied from copied from Talked with chatgpt about how to iterate through this
@@ -211,18 +114,17 @@ void printAlbumsAndTracks(map<string, Album> albums)
     }
 }
 
-void printEverythingFromArtists(map<string, Artist> artists)
+void printArtists(map<string, Artist> artists)
 {
     for (map<string, Artist>::iterator it = artists.begin(); it != artists.end(); ++it) // copied from Talked with chatgpt about how to iterate through this
     {
         Artist artist = it->second;
         cout << artist.name << ": " << artist.numSongs << ", " << convertToMinutesAndSeconds(artist.timeSeconds) << endl;
-        printAlbumsAndTracks(artist.albums);
+        printAlbums(artist.albums);
     }
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 
     // incorrect command line error
     if (argc != 2)
@@ -260,8 +162,6 @@ int main(int argc, char **argv)
 
         sin >> songName >> songLength >> songArtist >> songAlbum >> songGenre >> songTrackNumber;
 
-        // cout << songName << '-' << songLength << '-' << songArtist << '-' << songAlbum << '-' << songGenre << '-' << songTrackNumber << '-' << endl;         // error checking inputs
-
         underscoreToSpace(songName);
         underscoreToSpace(songArtist);
         underscoreToSpace(songAlbum);
@@ -280,22 +180,69 @@ int main(int argc, char **argv)
 
         allTracks.push_back(trackToAdd);
     }
+    
+    map<string, Artist> artists;
 
-    // for (size_t i = 0; i < allTracks.size(); i++)
-    // {
-    //     cout << "    -----    " << endl;
-    //     cout << allTracks[i].album << endl;
-    //     cout << allTracks[i].artist << endl;
-    //     cout << allTracks[i].timeSeconds << endl;
-    //     cout << allTracks[i].title << endl;
-    //     cout << allTracks[i].trackNumber << endl;
-    // }
+    for (size_t i = 0; i < allTracks.size(); i++) {
+        Track currentTrack = allTracks[i];
 
-    map<string, Album> albums = getAlbums(allTracks);
+        bool newArtist = artists.find(currentTrack.artist) == artists.end();
 
-    map<string, Artist> artists = getArtists(albums);
+        if (newArtist) {        // artist is not in list yet
 
-    printEverythingFromArtists(artists);
+            Album albumToAdd = {
+                {},
+                currentTrack.album,
+                currentTrack.artist,
+                currentTrack.timeSeconds,
+                1
+            };
+            albumToAdd.tracks[currentTrack.trackNumber] = currentTrack;
+
+            Artist artistToAdd = {
+                {},
+                currentTrack.artist,
+                currentTrack.timeSeconds,
+                1
+            };
+            artistToAdd.albums[currentTrack.album] = albumToAdd;
+
+            artists[artistToAdd.name] = artistToAdd;
+
+        } else {                // artist exists
+
+            bool newAlbum = artists[currentTrack.artist].albums.find(currentTrack.album) == artists[currentTrack.artist].albums.end();
+
+            if (newAlbum) {     // album is new to this artist
+
+                Album albumToAdd = {
+                    {},
+                    currentTrack.album,
+                    currentTrack.artist,
+                    currentTrack.timeSeconds,
+                    1
+                };
+
+                albumToAdd.tracks[currentTrack.trackNumber] = currentTrack;
+
+                artists[currentTrack.artist].albums[albumToAdd.name] = albumToAdd;
+                artists[currentTrack.artist].timeSeconds += currentTrack.timeSeconds;
+                artists[currentTrack.artist].numSongs++;
+
+            } else {            // album already exists for artist
+
+                artists[currentTrack.artist].albums[currentTrack.album].tracks[currentTrack.trackNumber] = currentTrack;
+                artists[currentTrack.artist].albums[currentTrack.album].timeSeconds += currentTrack.timeSeconds;
+                artists[currentTrack.artist].albums[currentTrack.album].numSongs++;
+                artists[currentTrack.artist].timeSeconds += currentTrack.timeSeconds;
+                artists[currentTrack.artist].numSongs++;
+
+            }
+        }
+    }
+
+
+    printArtists(artists);
 
     return 0;
 }

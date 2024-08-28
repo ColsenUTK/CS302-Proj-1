@@ -6,7 +6,7 @@
 #include <sstream>
 using namespace std;
 
-// structs are from lab document (Dr. Emrich)
+// struct formats are from lab document (Dr. Emrich)
 
 struct Track
 { // holds an individual song
@@ -34,11 +34,23 @@ struct Artist
     int numSongs;
 };
 
+
+
+
 int convertToSeconds(string timeIn); // convert time in [min:sec] format to secs
 
 string convertToMinutesAndSeconds(int timeIn); // converts time in secs back to [min:sec] format
 
 void underscoreToSpace(string &input); // converts all underscores in an input to spaces
+
+void printTracks(map<int, Track> tracks);
+
+void printAlbums(map<string, Album> albums);
+
+void printArtists(map<string, Artist> artists);
+
+
+
 
 int convertToSeconds(string timeIn)
 {
@@ -71,6 +83,7 @@ string convertToMinutesAndSeconds(int timeIn)
     min = to_string(timeIn / 60);
     sec = to_string(timeIn % 60);
 
+    // using string concatenation to format the time
     if (sec.length() < 2)
     {
         outputTime = min + ":0" + sec;
@@ -105,7 +118,6 @@ void printTracks(map<int, Track> tracks)
 
 void printAlbums(map<string, Album> albums)
 {
-    // cout << "PRINT ALBUMS AND TRACKS RAN" << endl;
     for (map<string, Album>::iterator it = albums.begin(); it != albums.end(); ++it) // copied from copied from Talked with chatgpt about how to iterate through this
     {
         Album album = it->second;
@@ -160,8 +172,10 @@ int main(int argc, char **argv) {
     {
         sin.str(line);
 
+        // load data from line
         sin >> songName >> songLength >> songArtist >> songAlbum >> songGenre >> songTrackNumber;
 
+        // convert all underscores to spaces
         underscoreToSpace(songName);
         underscoreToSpace(songArtist);
         underscoreToSpace(songAlbum);
@@ -169,8 +183,10 @@ int main(int argc, char **argv) {
 
         sin.clear();
 
+        // convert time to an int
         int timeSeconds = convertToSeconds(songLength);
 
+        // create the new track object
         Track trackToAdd = {
             songName,
             songArtist,
@@ -178,18 +194,21 @@ int main(int argc, char **argv) {
             songTrackNumber,
             timeSeconds};
 
+        // add new track to a vector
         allTracks.push_back(trackToAdd);
     }
     
-    map<string, Artist> artists;
+    map<string, Artist> artists;    // stores all the artists with name as a key
 
     for (size_t i = 0; i < allTracks.size(); i++) {
         Track currentTrack = allTracks[i];
 
-        bool newArtist = artists.find(currentTrack.artist) == artists.end();
+        // bool is true if the artist is not in the map yet
+        bool newArtist = artists.find(currentTrack.artist) == artists.end();    
 
         if (newArtist) {        // artist is not in list yet
 
+            // new artist means new album too
             Album albumToAdd = {
                 {},
                 currentTrack.album,
@@ -197,7 +216,7 @@ int main(int argc, char **argv) {
                 currentTrack.timeSeconds,
                 1
             };
-            albumToAdd.tracks[currentTrack.trackNumber] = currentTrack;
+            albumToAdd.tracks[currentTrack.trackNumber] = currentTrack;     // add track to the new album
 
             Artist artistToAdd = {
                 {},
@@ -205,16 +224,18 @@ int main(int argc, char **argv) {
                 currentTrack.timeSeconds,
                 1
             };
-            artistToAdd.albums[currentTrack.album] = albumToAdd;
+            artistToAdd.albums[currentTrack.album] = albumToAdd;            // add new album to new artist
 
-            artists[artistToAdd.name] = artistToAdd;
+            artists[artistToAdd.name] = artistToAdd;    // add new artist to "artists" map
 
         } else {                // artist exists
 
+            // bool is true if the album is not in the artist's map yet
             bool newAlbum = artists[currentTrack.artist].albums.find(currentTrack.album) == artists[currentTrack.artist].albums.end();
 
             if (newAlbum) {     // album is new to this artist
 
+                // create new album
                 Album albumToAdd = {
                     {},
                     currentTrack.album,
@@ -223,15 +244,20 @@ int main(int argc, char **argv) {
                     1
                 };
 
+                // add track to new album
                 albumToAdd.tracks[currentTrack.trackNumber] = currentTrack;
 
+                // add new album to existing artist and update artist info
                 artists[currentTrack.artist].albums[albumToAdd.name] = albumToAdd;
                 artists[currentTrack.artist].timeSeconds += currentTrack.timeSeconds;
                 artists[currentTrack.artist].numSongs++;
 
             } else {            // album already exists for artist
-
+                
+                // add track to existing album
                 artists[currentTrack.artist].albums[currentTrack.album].tracks[currentTrack.trackNumber] = currentTrack;
+
+                // update artist and album length and song count
                 artists[currentTrack.artist].albums[currentTrack.album].timeSeconds += currentTrack.timeSeconds;
                 artists[currentTrack.artist].albums[currentTrack.album].numSongs++;
                 artists[currentTrack.artist].timeSeconds += currentTrack.timeSeconds;
@@ -241,7 +267,7 @@ int main(int argc, char **argv) {
         }
     }
 
-
+    // display all data
     printArtists(artists);
 
     return 0;

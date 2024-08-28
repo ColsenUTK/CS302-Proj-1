@@ -2,18 +2,18 @@ CXX=		g++
 CXXFLAGS=	-g -Wall -std=gnu++11
 SHELL=		bash
 
-all:		bin/solution
+all:		lib_info
 
-bin/solution:	lib_info.cpp
+lib_info:	lib_info.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f bin/solution
+	rm -f lib_info
 
-test:	bin/solution
+test:	lib_info
 	@echo Testing output...
-	./bin/solution Music.txt
+	./lib_info Music.txt
 
-short:  bin/solution
+short:  lib_info
 	@echo Testing output...
-	./bin/solution Small.txt
+	./lib_info Small.txt

@@ -6,7 +6,6 @@
 #include <sstream>
 using namespace std;
 
-
 // structs are from lab document (Dr. Emrich)
 
 struct Track
@@ -72,7 +71,14 @@ string convertToMinutesAndSeconds(int timeIn)
     min = to_string(timeIn / 60);
     sec = to_string(timeIn % 60);
 
-    outputTime = min + ':' + sec;
+    if (sec.length() < 2)
+    {
+        outputTime = min + ":0" + sec;
+    }
+    else
+    {
+        outputTime = min + ':' + sec;
+    }
 
     return outputTime;
 }
@@ -129,10 +135,11 @@ map<string, Album> getAlbums(vector<Track> allTracks)
     map<string, Album> albums;
     for (Track &track : allTracks)
     {
-        bool albumDoesNotExist = !(albums.find(track.album) == albums.end()); // Chat gpt told me how to do this line
+        bool albumDoesNotExist = (albums.find(track.album) == albums.end()); // Chat gpt told me how to do this line
         if (albumDoesNotExist)
         {
             Album albumToAdd;
+            albumToAdd.tracks[track.trackNumber] = track;
             albumToAdd.name = track.album;
             albumToAdd.artistName = track.artist;
             albumToAdd.numSongs = 1;
@@ -143,7 +150,7 @@ map<string, Album> getAlbums(vector<Track> allTracks)
         else
         {
             Album &albumToModify = albums[track.album];
-            albumToModify.tracks[track.trackNumber];
+            albumToModify.tracks[track.trackNumber] = track;
             albumToModify.numSongs++;
             albumToModify.timeSeconds += track.timeSeconds;
         }
@@ -160,7 +167,7 @@ map<string, Artist> getArtists(map<string, Album> albums)
     {
         Album album = it->second;
 
-        bool artistDoesNotExist = !(artists.find(album.artistName) == artists.end()); // copied from the line where Chat gpt told me how to do this line
+        bool artistDoesNotExist = (artists.find(album.artistName) == artists.end()); // copied from the line where Chat gpt told me how to do this line
         if (artistDoesNotExist)
         {
             Artist artistToAdd;
@@ -168,6 +175,7 @@ map<string, Artist> getArtists(map<string, Album> albums)
             artistToAdd.name = album.artistName;
             artistToAdd.numSongs = album.numSongs;
             artistToAdd.timeSeconds = album.timeSeconds;
+            artists[artistToAdd.name] = artistToAdd;
         }
         else
         {
@@ -183,6 +191,8 @@ map<string, Artist> getArtists(map<string, Album> albums)
 
 void printTracks(map<int, Track> tracks)
 {
+    // cout << "PRINT TRACKS RAN" << endl;
+    // cout << tracks.size() << endl;
     for (map<int, Track>::iterator it = tracks.begin(); it != tracks.end(); ++it) // copied from copied from copied from Talked with chatgpt about how to iterate through this
     {
         Track track = it->second;
@@ -190,8 +200,9 @@ void printTracks(map<int, Track> tracks)
     }
 }
 
-void printAlbums(map<string, Album> albums)
+void printAlbumsAndTracks(map<string, Album> albums)
 {
+    // cout << "PRINT ALBUMS AND TRACKS RAN" << endl;
     for (map<string, Album>::iterator it = albums.begin(); it != albums.end(); ++it) // copied from copied from Talked with chatgpt about how to iterate through this
     {
         Album album = it->second;
@@ -206,7 +217,7 @@ void printEverythingFromArtists(map<string, Artist> artists)
     {
         Artist artist = it->second;
         cout << artist.name << ": " << artist.numSongs << ", " << convertToMinutesAndSeconds(artist.timeSeconds) << endl;
-        printAlbums(artist.albums);
+        printAlbumsAndTracks(artist.albums);
     }
 }
 
@@ -248,7 +259,7 @@ int main(int argc, char **argv)
         sin.str(line);
 
         sin >> songName >> songLength >> songArtist >> songAlbum >> songGenre >> songTrackNumber;
-        
+
         // cout << songName << '-' << songLength << '-' << songArtist << '-' << songAlbum << '-' << songGenre << '-' << songTrackNumber << '-' << endl;         // error checking inputs
 
         underscoreToSpace(songName);
@@ -261,16 +272,27 @@ int main(int argc, char **argv)
         int timeSeconds = convertToSeconds(songLength);
 
         Track trackToAdd = {
-        songName,
-        songArtist,
-        songAlbum,
-        songTrackNumber,
-        timeSeconds};
+            songName,
+            songArtist,
+            songAlbum,
+            songTrackNumber,
+            timeSeconds};
 
         allTracks.push_back(trackToAdd);
     }
 
+    // for (size_t i = 0; i < allTracks.size(); i++)
+    // {
+    //     cout << "    -----    " << endl;
+    //     cout << allTracks[i].album << endl;
+    //     cout << allTracks[i].artist << endl;
+    //     cout << allTracks[i].timeSeconds << endl;
+    //     cout << allTracks[i].title << endl;
+    //     cout << allTracks[i].trackNumber << endl;
+    // }
+
     map<string, Album> albums = getAlbums(allTracks);
+
     map<string, Artist> artists = getArtists(albums);
 
     printEverythingFromArtists(artists);

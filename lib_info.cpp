@@ -1,3 +1,8 @@
+// Colsen Murray and Wyatt Knepp
+// Project 1 - Dr. Emrich
+// This program parses data from an mp3 file and displays each 
+// artist with their respective albums and songs listed below. 
+
 #include <iostream>
 #include <string>
 #include <vector>

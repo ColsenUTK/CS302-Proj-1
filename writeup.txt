@@ -1,7 +1,7 @@
 1. Wyatt Knepp, Colsen Murray
 2. WyattKnepp
 3. https://github.com/ColsenUTK/CS302-Proj-1
-4. 
+4. make
 We worked together to setup the github
 Colsen set up the structs
 Wyatt filled the structs and printed them
